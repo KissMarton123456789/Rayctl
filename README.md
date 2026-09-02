@@ -1,10 +1,10 @@
 # Rayctl
 Why use Vulkan or OpenGL when you can manually shuffle raw 32-bit pixel integers across system memory like it's 1992?
 
-## Description
+#### Description
 A software rendering engine built from scratch in C++20. No modern GPU pipelines, no fancy shaders—just pure Digital Differential Analysis (DDA), raw array indexing, and multithreaded CPU abuse.
 
-## Features
+#### Features
 * 0% GPU Load: Your graphics card can continue sleeping.
 * 100% CPU Load: Built-in room heater powered by std::barrier and math.
 * Arch + Hyprland Native: Runs at 1,000 FPS strictly because I compile with -O3.
