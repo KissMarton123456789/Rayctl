@@ -1,0 +1,5 @@
+# Ignore all compiled executable files ending in .out
+*.out
+
+# Ignore my documentation file
+Documentation.txt
