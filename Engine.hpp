@@ -2,6 +2,7 @@
 #include <SDL2/SDL.h>
 #include <vector>
 #include <cstdint>
+#include "Player.hpp"
 
 class Engine
 {
@@ -14,6 +15,10 @@ public:
 private:
     void render();
     void processInput();
+    void update();
+    void drawWall();
+    //void processMovement(double moveSpeed, double rotationSpeed);
+
 
     int screenWidth;
     int screenHeight;
@@ -24,4 +29,5 @@ private:
     SDL_Texture* texture;
 
     std::vector<uint32_t> framebuffer;
+    Player player;
 };

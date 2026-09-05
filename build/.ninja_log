@@ -1,0 +1,6 @@
+# ninja log v7
+1	679	1788537526948597066	CMakeFiles/Raycaster.dir/Engine.cpp.o	1de0abac24b7446c
+1	765	1788537526947657443	CMakeFiles/Raycaster.dir/main.cpp.o	da59dded3cfbdc9e
+1	150	1788537753944216902	CMakeFiles/Raycaster.dir/Vec2.cpp.o	99ec33cf14f156a8
+1	152	1788537753945901378	CMakeFiles/Raycaster.dir/Player.cpp.o	c498979af67e953d
+152	195	1788537754095652476	Raycaster	fb02f562e50d8a7b

@@ -1,0 +1,7 @@
+{
+	"InstallScripts" : 
+	[
+		"/home/kukac/Documents/Raycaster/Rayctl/build/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

@@ -7,5 +7,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(SDL2 REQUIRED)
 include_directories(${SDL2_INCLUDE_DIRS})
 
-add_executable(Raycaster main.cpp Engine.cpp)
+add_executable(Raycaster main.cpp Engine.cpp
+    Vec2.cpp Player.cpp)
 target_link_libraries(Raycaster PRIVATE ${SDL2_LIBRARIES})

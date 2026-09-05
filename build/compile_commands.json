@@ -1,0 +1,26 @@
+[
+{
+  "directory": "/home/kukac/Documents/Raycaster/Rayctl/build",
+  "command": "/usr/bin/g++-15 -isystem /usr/include/SDL2 -g -std=gnu++20 -o CMakeFiles/Raycaster.dir/main.cpp.o -c /home/kukac/Documents/Raycaster/Rayctl/main.cpp",
+  "file": "/home/kukac/Documents/Raycaster/Rayctl/main.cpp",
+  "output": "/home/kukac/Documents/Raycaster/Rayctl/build/CMakeFiles/Raycaster.dir/main.cpp.o"
+},
+{
+  "directory": "/home/kukac/Documents/Raycaster/Rayctl/build",
+  "command": "/usr/bin/g++-15 -isystem /usr/include/SDL2 -g -std=gnu++20 -o CMakeFiles/Raycaster.dir/Engine.cpp.o -c /home/kukac/Documents/Raycaster/Rayctl/Engine.cpp",
+  "file": "/home/kukac/Documents/Raycaster/Rayctl/Engine.cpp",
+  "output": "/home/kukac/Documents/Raycaster/Rayctl/build/CMakeFiles/Raycaster.dir/Engine.cpp.o"
+},
+{
+  "directory": "/home/kukac/Documents/Raycaster/Rayctl/build",
+  "command": "/usr/bin/g++-15 -isystem /usr/include/SDL2 -g -std=gnu++20 -o CMakeFiles/Raycaster.dir/Vec2.cpp.o -c /home/kukac/Documents/Raycaster/Rayctl/Vec2.cpp",
+  "file": "/home/kukac/Documents/Raycaster/Rayctl/Vec2.cpp",
+  "output": "/home/kukac/Documents/Raycaster/Rayctl/build/CMakeFiles/Raycaster.dir/Vec2.cpp.o"
+},
+{
+  "directory": "/home/kukac/Documents/Raycaster/Rayctl/build",
+  "command": "/usr/bin/g++-15 -isystem /usr/include/SDL2 -g -std=gnu++20 -o CMakeFiles/Raycaster.dir/Player.cpp.o -c /home/kukac/Documents/Raycaster/Rayctl/Player.cpp",
+  "file": "/home/kukac/Documents/Raycaster/Rayctl/Player.cpp",
+  "output": "/home/kukac/Documents/Raycaster/Rayctl/build/CMakeFiles/Raycaster.dir/Player.cpp.o"
+}
+]
