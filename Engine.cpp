@@ -3,41 +3,26 @@
 #include <cstring>
 
 constexpr double MOUSE_SENSITIVITY = 0.002;
-constexpr int MAP_WIDTH = 20;
-constexpr int MAP_HEIGHT = 20;
-
-const int worldMap[MAP_WIDTH][MAP_HEIGHT] = 
-{
-    {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
-    {1,1,1,1,1,0,0,0,0,0,0,0,1,1,1,1,1,0,0,1},
-    {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1},
-    {1,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
-    {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1},
-    {1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1},
-    {1,1,1,1,1,1,1,0,0,0,0,0,1,1,1,1,1,1,1,1},
-    {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-    {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-    {1,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
-    {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-    {1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1},
-    {1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,1,1},
-    {1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,1,1},
-    {1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,1,1},
-    {1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1},
-    {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-    {1,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,0,0,1},
-    {1,0,0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0,0,1},
-    {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}
-};
-
+constexpr int MAP_WIDTH = 100;
+constexpr int MAP_HEIGHT = 100;
 constexpr int TEX_WIDTH = 64;
 constexpr int TEX_HEIGHT = 64;
+
+std::vector<int> worldMap(MAP_WIDTH * MAP_HEIGHT, 0);
+inline int getTile(int x, int y) {
+    return worldMap[x * MAP_HEIGHT + y];
+}
+
+inline void setTile(int x, int y, int value) {
+    worldMap[x * MAP_HEIGHT + y] = value;
+}
 
 Engine::Engine(int width, int height)
     : screenWidth(width), screenHeight(height), isRuning(false),
       window(nullptr), renderer(nullptr), texture(nullptr)
 {
     framebuffer.resize(screenWidth * screenHeight, 0);
+    worldMap = generateMap();
 }
 
 Engine::~Engine()
@@ -113,20 +98,25 @@ void Engine::processInput()
         }
         else if(event.type == SDL_KEYDOWN)
         {
-            if(event.key.keysym.mod == SDLK_w 
-                && event.key.keysym.mod & KMOD_SHIFT) player.isSprinting      = true;
-            else if(event.key.keysym.sym == SDLK_w)   player.isMovingForward  = true;
-            else if(event.key.keysym.sym == SDLK_s)   player.isMovingBackward = true;
-            else if(event.key.keysym.sym == SDLK_a)   player.isMovingLeft     = true;
-            else if(event.key.keysym.sym == SDLK_d)   player.isMovingRight    = true;
+            if(event.key.keysym.sym == SDLK_w)      player.isMovingForward  = true;
+            else if(event.key.keysym.sym == SDLK_s) player.isMovingBackward = true;
+            else if(event.key.keysym.sym == SDLK_a) player.isMovingLeft     = true;
+            else if(event.key.keysym.sym == SDLK_d) player.isMovingRight    = true;
+
+            if(event.key.keysym.sym == SDLK_LSHIFT || event.key.keysym.sym == SDLK_RSHIFT) {
+                player.isSprinting = true;
+            }
         }
         else if(event.type == SDL_KEYUP)
         {
-            if(event.key.keysym.sym == SDLK_w)         player.isMovingForward  = false;
-            else if(event.key.keysym.mod & KMOD_SHIFT) player.isSprinting      = false;
-            else if(event.key.keysym.sym == SDLK_s)    player.isMovingBackward = false;
-            else if(event.key.keysym.sym == SDLK_a)    player.isMovingLeft     = false;
-            else if(event.key.keysym.sym == SDLK_d)    player.isMovingRight    = false;
+            if(event.key.keysym.sym == SDLK_w)      player.isMovingForward  = false;
+            else if(event.key.keysym.sym == SDLK_s) player.isMovingBackward = false;
+            else if(event.key.keysym.sym == SDLK_a) player.isMovingLeft     = false;
+            else if(event.key.keysym.sym == SDLK_d) player.isMovingRight    = false;
+
+            if(event.key.keysym.sym == SDLK_LSHIFT || event.key.keysym.sym == SDLK_RSHIFT) {
+                player.isSprinting = false;
+            }
         }
     }
 }
@@ -140,16 +130,16 @@ void Engine::update()
         double nextX = player.pos.x + player.dir.x * moveSpeed;
         double nextY = player.pos.y + player.dir.y * moveSpeed;
         
-        if(worldMap[static_cast<int>(nextX)][static_cast<int>(player.pos.y)] == 0) player.pos.x = nextX;
-        if(worldMap[static_cast<int>(player.pos.x)][static_cast<int>(nextY)] == 0) player.pos.y = nextY;
+        if(getTile(static_cast<int>(nextX), static_cast<int>(player.pos.y)) == 0) player.pos.x = nextX;
+        if(getTile(static_cast<int>(player.pos.x), static_cast<int>(nextY)) == 0) player.pos.y = nextY;
     }
     if(player.isMovingBackward) 
     {
         double nextX = player.pos.x - player.dir.x * moveSpeed;
         double nextY = player.pos.y - player.dir.y * moveSpeed;
         
-        if(worldMap[static_cast<int>(nextX)][static_cast<int>(player.pos.y)] == 0) player.pos.x = nextX;
-        if(worldMap[static_cast<int>(player.pos.x)][static_cast<int>(nextY)] == 0) player.pos.y = nextY;
+        if(getTile(static_cast<int>(nextX), static_cast<int>(player.pos.y)) == 0) player.pos.x = nextX;
+        if(getTile(static_cast<int>(player.pos.x), static_cast<int>(nextY)) == 0) player.pos.y = nextY;
     }
 
     if(player.isMovingLeft) 
@@ -157,24 +147,24 @@ void Engine::update()
         double nextX = player.pos.x - player.plane.x * moveSpeed;
         double nextY = player.pos.y - player.plane.y * moveSpeed;
         
-        if(worldMap[static_cast<int>(nextX)][static_cast<int>(player.pos.y)] == 0) player.pos.x = nextX;
-        if(worldMap[static_cast<int>(player.pos.x)][static_cast<int>(nextY)] == 0) player.pos.y = nextY;
+        if(getTile(static_cast<int>(nextX), static_cast<int>(player.pos.y)) == 0) player.pos.x = nextX;
+        if(getTile(static_cast<int>(player.pos.x), static_cast<int>(nextY)) == 0) player.pos.y = nextY;
     }
     if(player.isMovingRight) 
     {
         double nextX = player.pos.x + player.plane.x * moveSpeed;
         double nextY = player.pos.y + player.plane.y * moveSpeed;
         
-        if(worldMap[static_cast<int>(nextX)][static_cast<int>(player.pos.y)] == 0) player.pos.x = nextX;
-        if(worldMap[static_cast<int>(player.pos.x)][static_cast<int>(nextY)] == 0) player.pos.y = nextY;
+        if(getTile(static_cast<int>(nextX), static_cast<int>(player.pos.y)) == 0) player.pos.x = nextX;
+        if(getTile(static_cast<int>(player.pos.x), static_cast<int>(nextY)) == 0) player.pos.y = nextY;
     }
     if(player.isSprinting) 
     {
         double nextX = player.pos.x + player.dir.x * (moveSpeed * 3);
         double nextY = player.pos.y + player.dir.y * (moveSpeed * 3);
         
-        if(worldMap[static_cast<int>(nextX)][static_cast<int>(player.pos.y)] == 0) player.pos.x = nextX;
-        if(worldMap[static_cast<int>(player.pos.x)][static_cast<int>(nextY)] == 0) player.pos.y = nextY;
+        if(getTile(static_cast<int>(nextX), static_cast<int>(player.pos.y)) == 0) player.pos.x = nextX;
+        if(getTile(static_cast<int>(player.pos.x), static_cast<int>(nextY)) == 0) player.pos.y = nextY;
     }
 }
 
@@ -280,8 +270,81 @@ void Engine::render3D()
             framebuffer[y * screenWidth + x] = color;
         }
     }
+}
 
+//THIS METHOD IS AI GENERATED
+std::vector<int> Engine::generateMap() {
+    // 1. Fill entire map grid with solid walls (1)
+    std::vector<int> map(MAP_WIDTH * MAP_HEIGHT, 1);
 
+    std::random_device rd;
+    std::mt19937 gen(rd());
+
+    std::vector<Room> rooms;
+
+    // Guaranteed starting room around player spawn point (3.5, 3.5)
+    rooms.push_back({ 2, 2, 6, 6 });
+
+    // Generate random room count based on map dimensions
+    int targetRooms = (MAP_WIDTH * MAP_HEIGHT) / 120;
+    std::uniform_int_distribution<int> sizeDist(5, 10);
+
+    for (int i = 0; i < targetRooms; ++i) {
+        int w = sizeDist(gen);
+        int h = sizeDist(gen);
+        
+        // Keep rooms at least 2 tiles away from absolute map edges
+        int x = std::uniform_int_distribution<int>(2, MAP_WIDTH - w - 3)(gen);
+        int y = std::uniform_int_distribution<int>(2, MAP_HEIGHT - h - 3)(gen);
+
+        rooms.push_back({ x, y, w, h });
+    }
+
+    // 2. Carve out rooms (set tiles to 0)
+    for (const auto& r : rooms) {
+        for (int rx = r.x; rx < r.x + r.w; ++rx) {
+            for (int ry = r.y; ry < r.y + r.h; ++ry) {
+                map[rx * MAP_HEIGHT + ry] = 0;
+            }
+        }
+    }
+
+    // 3. Connect rooms sequentially with L-shaped corridors
+    for (size_t i = 1; i < rooms.size(); ++i) {
+        int prevX = rooms[i - 1].centerX();
+        int prevY = rooms[i - 1].centerY();
+        int currX = rooms[i].centerX();
+        int currY = rooms[i].centerY();
+
+        // Randomize turn direction (Horizontal-first vs Vertical-first)
+        if (std::uniform_int_distribution<int>(0, 1)(gen) == 0) {
+            for (int x = std::min(prevX, currX); x <= std::max(prevX, currX); ++x) {
+                map[x * MAP_HEIGHT + prevY] = 0;
+            }
+            for (int y = std::min(prevY, currY); y <= std::max(prevY, currY); ++y) {
+                map[currX * MAP_HEIGHT + y] = 0;
+            }
+        } else {
+            for (int y = std::min(prevY, currY); y <= std::max(prevY, currY); ++y) {
+                map[prevX * MAP_HEIGHT + y] = 0;
+            }
+            for (int x = std::min(prevX, currX); x <= std::max(prevX, currX); ++x) {
+                map[x * MAP_HEIGHT + currY] = 0;
+            }
+        }
+    }
+
+    // 4. Force solid perimeter border to prevent ray casting out-of-bounds
+    for (int x = 0; x < MAP_WIDTH; ++x) {
+        map[x * MAP_HEIGHT + 0] = 1;
+        map[x * MAP_HEIGHT + (MAP_HEIGHT - 1)] = 1;
+    }
+    for (int y = 0; y < MAP_HEIGHT; ++y) {
+        map[0 * MAP_HEIGHT + y] = 1;
+        map[(MAP_WIDTH - 1) * MAP_HEIGHT + y] = 1;
+    }
+
+    return map;
 }
 
 HitResult Engine::performDDA(Vec2 rayDir)
@@ -339,7 +402,7 @@ HitResult Engine::performDDA(Vec2 rayDir)
         {
             hit = true; 
         }
-        else if (worldMap[mapX][mapY] > 0) 
+        else if (getTile(mapX, mapY) > 0) 
         {
             hit = true;
         }

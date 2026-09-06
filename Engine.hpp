@@ -2,9 +2,12 @@
 #include <SDL2/SDL.h>
 #include <vector>
 #include <cstring>
+#include <random>
+#include <algorithm>
 #include "stb_image.hpp"
 #include "Player.hpp"
 #include "HitResult.hpp"
+#include "Room.hpp"
 
 
 class Engine
@@ -22,6 +25,7 @@ private:
     void drawWall();
     void render3D();
     HitResult performDDA(Vec2 rayDir);
+    std::vector<int> generateMap();
     void drawWallColumn(int x, int drawStart, int drawEnd, uint32_t color, std::vector<uint32_t>&frameBuffer, int screenWidth);
     std::vector<uint32_t> loadTexture(const char* filepath);
 
