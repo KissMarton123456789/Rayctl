@@ -1,4 +1,6 @@
+#define STB_IMAGE_IMPLEMENTATION
 #include "Engine.hpp"
+#include <cstring>
 
 constexpr double MOUSE_SENSITIVITY = 0.002;
 constexpr int MAP_WIDTH = 20;
@@ -28,6 +30,8 @@ const int worldMap[MAP_WIDTH][MAP_HEIGHT] =
     {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}
 };
 
+constexpr int TEX_WIDTH = 128;
+constexpr int TEX_HEIGHT = 128;
 
 Engine::Engine(int width, int height)
     : screenWidth(width), screenHeight(height), isRuning(false),
@@ -67,6 +71,19 @@ bool Engine::init()
     player.isMovingLeft     = false;
     player.isMovingRight    = false;
     player.isSprinting      = false;
+
+    
+    int width, height, channels;
+    unsigned char* img = stbi_load("wall.png", &width, &height, &channels, 4); 
+    if (!img) {
+        return false; 
+    }
+
+    wallTexture.resize(width * height);
+    
+    std::memcpy(wallTexture.data(), img, width * height * sizeof(uint32_t));
+    
+    stbi_image_free(img);
 
     return true;
 }
@@ -110,14 +127,16 @@ void Engine::update()
 {
     double moveSpeed = 80.0/screenWidth;
 
-    if(player.isMovingForward) {
+    if(player.isMovingForward) 
+    {
         double nextX = player.pos.x + player.dir.x * moveSpeed;
         double nextY = player.pos.y + player.dir.y * moveSpeed;
         
         if(worldMap[static_cast<int>(nextX)][static_cast<int>(player.pos.y)] == 0) player.pos.x = nextX;
         if(worldMap[static_cast<int>(player.pos.x)][static_cast<int>(nextY)] == 0) player.pos.y = nextY;
     }
-    if(player.isMovingBackward) {
+    if(player.isMovingBackward) 
+    {
         double nextX = player.pos.x - player.dir.x * moveSpeed;
         double nextY = player.pos.y - player.dir.y * moveSpeed;
         
@@ -125,21 +144,24 @@ void Engine::update()
         if(worldMap[static_cast<int>(player.pos.x)][static_cast<int>(nextY)] == 0) player.pos.y = nextY;
     }
 
-    if(player.isMovingLeft) {
+    if(player.isMovingLeft) 
+    {
         double nextX = player.pos.x - player.plane.x * moveSpeed;
         double nextY = player.pos.y - player.plane.y * moveSpeed;
         
         if(worldMap[static_cast<int>(nextX)][static_cast<int>(player.pos.y)] == 0) player.pos.x = nextX;
         if(worldMap[static_cast<int>(player.pos.x)][static_cast<int>(nextY)] == 0) player.pos.y = nextY;
     }
-    if(player.isMovingRight) {
+    if(player.isMovingRight) 
+    {
         double nextX = player.pos.x + player.plane.x * moveSpeed;
         double nextY = player.pos.y + player.plane.y * moveSpeed;
         
         if(worldMap[static_cast<int>(nextX)][static_cast<int>(player.pos.y)] == 0) player.pos.x = nextX;
         if(worldMap[static_cast<int>(player.pos.x)][static_cast<int>(nextY)] == 0) player.pos.y = nextY;
     }
-    if(player.isSprinting) {
+    if(player.isSprinting) 
+    {
         double nextX = player.pos.x + player.dir.x * (moveSpeed * 3);
         double nextY = player.pos.y + player.dir.y * (moveSpeed * 3);
         
@@ -150,20 +172,6 @@ void Engine::update()
 
 void Engine::render()
 {
-    //IMPORTANT: This will write the pixels 1 by 1 to the screen
-    // for (size_t y = 0; y < screenHeight; y++)
-    // {
-    //     for (size_t x = 0; x < screenWidth; x++)
-    //     {
-    //         int index = y * screenWidth + x;
-
-    //         uint8_t r = x % 255;
-    //         uint8_t g = y % 255;
-    //         uint8_t b = 128;
-
-    //         framebuffer[index] = (0xFF << 24) | (r << 16) | (g << 8) | b;
-    //     }
-    // }
     int halfScreen = (screenWidth * screenHeight) / 2;
     std::fill(framebuffer.begin(), framebuffer.begin() + halfScreen, 0xFF333333);
     std::fill(framebuffer.begin() + halfScreen, framebuffer.end(), 0xFF777777);
@@ -189,23 +197,11 @@ void Engine::run()
     }
 }
 
-// void Engine::processMovement(double moveSpeed, double rotateSpeed)
-// {
-//     const uint8_t* state = SDL_GetKeyboardState(nullptr);
-
-//     if(state[SDL_SCANCODE_LEFT])
-//     {
-//         player.turn(rotateSpeed);
-//     }
-//     if(state[SDL_SCANCODE_RIGHT])
-//     {
-//         player.turn(-rotateSpeed);
-//     }
-// }
 
 void Engine::render3D()
 {
-    for (int x = 0; x < screenWidth; x++) {
+    for (int x = 0; x < screenWidth; x++) 
+    {
         
         double cameraX = 2 * x / static_cast<double>(screenWidth) - 1.0; 
         
@@ -213,15 +209,44 @@ void Engine::render3D()
             player.dir.x + player.plane.x * cameraX,
             player.dir.y + player.plane.y * cameraX
         };
-
+        
         HitResult hit = performDDA(rayDir);
-
+        
         int lineHeight = static_cast<int>(screenHeight / hit.prepDistance);
         int drawStart = std::max(0, -lineHeight / 2 + screenHeight / 2);
         int drawEnd = std::min(screenHeight - 1, lineHeight / 2 + screenHeight / 2);
+        
+        double wallX; 
+        if (hit.axis == WallAxis::Vertical) {
+            wallX = player.pos.y + hit.prepDistance * rayDir.y;
+        } else {
+            wallX = player.pos.x + hit.prepDistance * rayDir.x;
+        }
+        wallX -= std::floor(wallX);
 
-        uint32_t wallColor = (hit.axis == WallAxis::Horizontal) ? 0xFF00FFFF : 0xFF5CE85C;
-        drawWallColumn(x, drawStart, drawEnd, wallColor, framebuffer, screenWidth);
+        int texX = static_cast<int>(wallX * static_cast<double>(TEX_WIDTH));
+
+        // Flip texture coordinate to prevent mirroring
+        if ((hit.axis == WallAxis::Vertical && rayDir.x > 0) || 
+            (hit.axis == WallAxis::Horizontal && rayDir.y < 0)) {
+            texX = TEX_WIDTH - texX - 1;
+        }
+        
+        double step = 1.0 * TEX_HEIGHT / lineHeight;
+        double texPos = (drawStart - screenHeight / 2.0 + lineHeight / 2.0) * step;
+
+        for (int y = drawStart; y <= drawEnd; ++y) {
+            int texY = static_cast<int>(texPos) & (TEX_HEIGHT - 1);
+            texPos += step;
+
+            uint32_t color = wallTexture[TEX_HEIGHT * texY + texX];
+
+            if (hit.axis == WallAxis::Horizontal) {
+                color = (color >> 1) & 0x7F7F7F7F; 
+            }
+
+            framebuffer[y * screenWidth + x] = color;
+        }
     }
 }
 
@@ -229,53 +254,65 @@ HitResult Engine::performDDA(Vec2 rayDir)
 {
     int mapX = static_cast<int>(player.pos.x);
     int mapY = static_cast<int>(player.pos.y);
-
+    
     double deltaDistX = std::abs(1.0 / rayDir.x);
     double deltaDistY = std::abs(1.0 / rayDir.y);
-
+    
     double sideDistX, sideDistY;
     int stepX, stepY;
-
-    if (rayDir.x < 0) {
+    
+    if (rayDir.x < 0) 
+    {
         stepX = -1;
         sideDistX = (player.pos.x - mapX) * deltaDistX;
-    } else {
+    } 
+    else 
+    {
         stepX = 1;
         sideDistX = (mapX + 1.0 - player.pos.x) * deltaDistX;
     }
-
-    if (rayDir.y < 0) {
+    
+    if (rayDir.y < 0) 
+    {
         stepY = -1;
         sideDistY = (player.pos.y - mapY) * deltaDistY;
-    } else {
+    } 
+    else 
+    {
         stepY = 1;
         sideDistY = (mapY + 1.0 - player.pos.y) * deltaDistY;
     }
-
+    
     bool hit = false;
     WallAxis side = WallAxis::Vertical;
-
-    while (!hit) {
-        if (sideDistX < sideDistY) {
+    
+    while (!hit) 
+    {
+        if (sideDistX < sideDistY) 
+        {
             sideDistX += deltaDistX;
             mapX += stepX;
             side = WallAxis::Vertical;
-        } else {
+        } 
+        else 
+        {
             sideDistY += deltaDistY;
             mapY += stepY;
             side = WallAxis::Horizontal;
         }
-
-        if (mapX < 0 || mapX >= MAP_WIDTH || mapY < 0 || mapY >= MAP_HEIGHT) {
+        
+        if (mapX < 0 || mapX >= MAP_WIDTH || mapY < 0 || mapY >= MAP_HEIGHT) 
+        {
             hit = true; 
         }
-        else if (worldMap[mapX][mapY] > 0) {
+        else if (worldMap[mapX][mapY] > 0) 
+        {
             hit = true;
         }
     }
-
+    
     double perpWallDist = (side == WallAxis::Vertical) ? (sideDistX - deltaDistX) : (sideDistY - deltaDistY);
-
+    
     return {perpWallDist, side};
 }
 
@@ -286,4 +323,20 @@ void Engine::drawWallColumn(int x, int drawStart, int drawEnd, uint32_t color, s
         int index = y * screenWidth +x;
         frameBuffer[index] = color;
     }
+}
+
+std::vector<uint32_t> Engine::loadTexture(const char* filepath) {
+    int w, h, channels;
+    unsigned char* img = stbi_load(filepath, &w, &h, &channels, 4);
+    
+    std::vector<uint32_t> buffer(TEX_WIDTH * TEX_HEIGHT);
+    uint32_t* rawPixels = reinterpret_cast<uint32_t*>(img);
+    
+    for (int i = 0; i < TEX_WIDTH * TEX_HEIGHT; ++i) 
+    {
+        buffer[i] = rawPixels[i];
+    }
+    
+    stbi_image_free(img);
+    return buffer;
 }

@@ -3,7 +3,7 @@
 
 int main()
 {
-    Engine engine(3840, 2160);
+    Engine engine(1920, 1080);
 
     if(!engine.init())
     {

@@ -1,9 +1,11 @@
 #pragma once
 #include <SDL2/SDL.h>
 #include <vector>
-#include <cstdint>
+#include <cstring>
+#include "stb_image.hpp"
 #include "Player.hpp"
 #include "HitResult.hpp"
+
 
 class Engine
 {
@@ -21,7 +23,7 @@ private:
     void render3D();
     HitResult performDDA(Vec2 rayDir);
     void drawWallColumn(int x, int drawStart, int drawEnd, uint32_t color, std::vector<uint32_t>&frameBuffer, int screenWidth);
-    //void processMovement(double moveSpeed, double rotationSpeed);
+    std::vector<uint32_t> loadTexture(const char* filepath);
 
 
     int screenWidth;
@@ -34,4 +36,5 @@ private:
 
     std::vector<uint32_t> framebuffer;
     Player player;
+    std::vector<uint32_t> wallTexture;
 };
