@@ -30,8 +30,8 @@ const int worldMap[MAP_WIDTH][MAP_HEIGHT] =
     {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}
 };
 
-constexpr int TEX_WIDTH = 128;
-constexpr int TEX_HEIGHT = 128;
+constexpr int TEX_WIDTH = 64;
+constexpr int TEX_HEIGHT = 64;
 
 Engine::Engine(int width, int height)
     : screenWidth(width), screenHeight(height), isRuning(false),
@@ -74,16 +74,24 @@ bool Engine::init()
 
     
     int width, height, channels;
-    unsigned char* img = stbi_load("wall.png", &width, &height, &channels, 4); 
-    if (!img) {
+    unsigned char* wallImage = stbi_load("doom_texture_2.png", &width, &height, &channels, 4);
+    unsigned char* floorImage = stbi_load("doom_floor_texture_2.png", &width, &height, &channels, 4);
+    unsigned char* ceilingImage = stbi_load("doom_ceiling_texture_1.png", &width, &height, &channels, 4);
+    if (!wallImage || !floorImage || !ceilingImage) {
         return false; 
     }
 
     wallTexture.resize(width * height);
+    floorTexture.resize(width * height);
+    ceilingTexture.resize(width * height);
     
-    std::memcpy(wallTexture.data(), img, width * height * sizeof(uint32_t));
+    std::memcpy(wallTexture.data(), wallImage, width * height * sizeof(uint32_t));
+    std::memcpy(floorTexture.data(), floorImage, width * height * sizeof(uint32_t));
+    std::memcpy(ceilingTexture.data(), ceilingImage, width * height * sizeof(uint32_t));
     
-    stbi_image_free(img);
+    stbi_image_free(wallImage);
+    stbi_image_free(floorImage);
+    stbi_image_free(ceilingImage);
 
     return true;
 }
@@ -200,6 +208,30 @@ void Engine::run()
 
 void Engine::render3D()
 {
+    //Floor
+    for (int y = screenHeight / 2 + 1; y < screenHeight; ++y) {
+        Vec2 rayDirLeft = { player.dir.x - player.plane.x, player.dir.y - player.plane.y };
+        Vec2 rayDirRight = { player.dir.x + player.plane.x, player.dir.y + player.plane.y };
+
+        double p = y - screenHeight / 2.0;
+        double rowDistance = (0.5 * screenHeight) / p;
+
+        Vec2 floorStep = (rayDirRight - rayDirLeft) * (rowDistance / screenWidth);
+        Vec2 floorPos = player.pos + rayDirLeft * rowDistance;
+
+        for (int x = 0; x < screenWidth; ++x) {
+            int texX = static_cast<int>(TEX_WIDTH * (floorPos.x - std::floor(floorPos.x))) & (TEX_WIDTH - 1);
+            int texY = static_cast<int>(TEX_HEIGHT * (floorPos.y - std::floor(floorPos.y))) & (TEX_HEIGHT - 1);
+
+            // Render Floor
+            framebuffer[y * screenWidth + x] = floorTexture[TEX_HEIGHT * texY + texX];
+            framebuffer[(screenHeight - y - 1) * screenWidth + x] = ceilingTexture[TEX_HEIGHT * texY + texX];
+
+            floorPos += floorStep;
+        }
+    }
+
+    // Walls
     for (int x = 0; x < screenWidth; x++) 
     {
         
@@ -248,6 +280,8 @@ void Engine::render3D()
             framebuffer[y * screenWidth + x] = color;
         }
     }
+
+
 }
 
 HitResult Engine::performDDA(Vec2 rayDir)

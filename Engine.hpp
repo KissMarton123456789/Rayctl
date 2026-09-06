@@ -37,4 +37,6 @@ private:
     std::vector<uint32_t> framebuffer;
     Player player;
     std::vector<uint32_t> wallTexture;
+    std::vector<uint32_t> floorTexture;
+    std::vector<uint32_t> ceilingTexture;
 };
