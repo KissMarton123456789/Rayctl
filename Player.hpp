@@ -3,7 +3,7 @@
 
 struct Player
 {
-    Vec2 pos{22.0, 12.0};
+    Vec2 pos{2.5, 2.5};
     Vec2 dir{-1.0, 0.0};
     Vec2 plane{0.0, 0.66};
 
@@ -11,6 +11,7 @@ struct Player
     bool isMovingBackward;
     bool isMovingLeft;
     bool isMovingRight;
+    bool isSprinting;
 
     void turn(double angle);
 };

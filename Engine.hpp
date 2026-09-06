@@ -3,6 +3,7 @@
 #include <vector>
 #include <cstdint>
 #include "Player.hpp"
+#include "HitResult.hpp"
 
 class Engine
 {
@@ -17,6 +18,9 @@ private:
     void processInput();
     void update();
     void drawWall();
+    void render3D();
+    HitResult performDDA(Vec2 rayDir);
+    void drawWallColumn(int x, int drawStart, int drawEnd, uint32_t color, std::vector<uint32_t>&frameBuffer, int screenWidth);
     //void processMovement(double moveSpeed, double rotationSpeed);
 
 
